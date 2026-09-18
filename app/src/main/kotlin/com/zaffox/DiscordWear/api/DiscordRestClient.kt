@@ -61,6 +61,13 @@ class DiscordRestClient(private val token: String) {
                 .build()
         )
 
+    private suspend fun put(path: String, body: JSONObject): String =
+        execute(
+            buildRequest(path)
+                .put(body.toString().toRequestBody(jsonMime))
+                .build()
+        )
+
     private suspend fun delete(path: String): String =
         execute(buildRequest(path).delete().build())
 
@@ -360,6 +367,16 @@ class DiscordRestClient(private val token: String) {
         val userObj = json.optJSONObject("user") ?: json
         DiscordUser.fromJson(userObj)
     }
+
+    suspend fun blockUser(userId: String) {
+        runCatching {
+            put("/users/@me/relationships/$userId", JSONObject().put("type", 2))
+        }
+    }
+
+    /*suspend fun unblockUser(userId: String) {
+        delete("/users/@me/relationships/$userId")
+    }*/
 
     suspend fun createDmChannel(userId: String): Result<Channel> = runCatching {
         val body = JSONObject().put("recipient_id", userId)
